@@ -1,0 +1,26 @@
+# Generate docker-compose.yml as a reproducible deployment artifact.
+services:
+  backend:
+    build: ./backend_files
+    ports:
+      - "7860:7860"
+      - "8501:8501"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:7860/health', timeout=5)"
+      interval: 10s
+      timeout: 6s
+      retries: 6
+      start_period: 30s
+
+  frontend:
+    build: ./frontend_files
+    network_mode: "service:backend"
+    environment:
+      BACKEND_URL: http://127.0.0.1:7860
+    depends_on:
+      backend:
+        condition: service_healthy
